@@ -29,3 +29,10 @@ C:\Users\User\source\repos\Web.Api\Web.Api\obj\Debug\net5.0\Web.Api.pdb
 C:\Users\User\source\repos\Web.Api\Web.Api\obj\Debug\net5.0\Web.Api.genruntimeconfig.cache
 C:\Users\User\source\repos\Web.Api\Web.Api\bin\Debug\net5.0\Web.Api.xml
 C:\Users\User\source\repos\Web.Api\Web.Api\bin\Debug\net5.0\Swashbuckle.AspNetCore.Annotations.dll
+C:\Users\User\source\repos\Web.Api\Web.Api\bin\Debug\net5.0\Microsoft.AspNetCore.Authentication.JwtBearer.dll
+C:\Users\User\source\repos\Web.Api\Web.Api\bin\Debug\net5.0\Microsoft.IdentityModel.JsonWebTokens.dll
+C:\Users\User\source\repos\Web.Api\Web.Api\bin\Debug\net5.0\Microsoft.IdentityModel.Logging.dll
+C:\Users\User\source\repos\Web.Api\Web.Api\bin\Debug\net5.0\Microsoft.IdentityModel.Protocols.dll
+C:\Users\User\source\repos\Web.Api\Web.Api\bin\Debug\net5.0\Microsoft.IdentityModel.Protocols.OpenIdConnect.dll
+C:\Users\User\source\repos\Web.Api\Web.Api\bin\Debug\net5.0\Microsoft.IdentityModel.Tokens.dll
+C:\Users\User\source\repos\Web.Api\Web.Api\bin\Debug\net5.0\System.IdentityModel.Tokens.Jwt.dll
