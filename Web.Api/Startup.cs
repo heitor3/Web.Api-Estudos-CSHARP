@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -10,6 +11,10 @@ using System;
 using System.IO;
 using System.Reflection;
 using System.Text;
+using Web.Api.Business.Repositories;
+using Web.Api.Configurations;
+using Web.Api.Infrastructure.Data;
+using Web.Api.Infrastructure.Data.Repositories;
 
 namespace Web.Api
 {
@@ -83,6 +88,14 @@ namespace Web.Api
                     ValidateAudience = false
                 };
             });
+
+            services.AddDbContext<CursoDbContext>(options =>
+            {
+                options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection"));
+            });
+            services.AddScoped<IUsuarioRepository, UsuarioRepository>();
+            services.AddScoped<ICursoRepository, CursoRepository>();
+            services.AddScoped<IAuthenticateService, JwtService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -92,11 +105,12 @@ namespace Web.Api
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
-                app.UseSwaggerUI(c => {
+                app.UseSwaggerUI(c =>
+                {
                     c.SwaggerEndpoint("/swagger/v1/swagger.json", "Web.Api v1");
-                    c.RoutePrefix = string.Empty ;
+                    c.RoutePrefix = string.Empty;
                 });
-                
+
             }
 
             app.UseHttpsRedirection();

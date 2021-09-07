@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
@@ -9,7 +11,11 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using Web.Api.Business.Entities;
+using Web.Api.Business.Repositories;
+using Web.Api.Configurations;
 using Web.Api.Filters;
+using Web.Api.Infrastructure.Data;
 using Web.Api.Models;
 using Web.Api.Models.Usuarios;
 
@@ -19,6 +25,15 @@ namespace Web.Api.Controllers
     [ApiController]
     public class UsuarioController : ControllerBase
     {
+        private readonly IUsuarioRepository _usuarioRepository;
+        private readonly IAuthenticateService _authenticateService;
+
+        public UsuarioController(IUsuarioRepository usuarioRepository,
+            IAuthenticateService authenticateService)
+        {
+            _usuarioRepository = usuarioRepository;
+            _authenticateService = authenticateService;
+        }
 
         [SwaggerResponse(statusCode: 200, description: "Sucesso ao autenticar", Type = typeof(LoginViewModelInput))]
         [SwaggerResponse(statusCode: 400, description: "Campos obrigatórios", Type = typeof(ValidaCampoViewOutPut))]
@@ -29,29 +44,26 @@ namespace Web.Api.Controllers
         [ValidacaoModelStateCustomizado]
         public IActionResult Logar(LoginViewModelInput loginViewModelInput)
         {
+            var usuario = _usuarioRepository.ObterUsuario(loginViewModelInput.Login);
+
+            if (usuario == null)
+            {
+                return BadRequest("Houve um erro ao tentar acessar.");
+            }
+
+            //if (usuario.Senha != loginViewModelInput.Senha.GerarSenhaCriptografada())
+            //{
+            //    return BadRequest("Houve um erro ao tentar acessar.");
+            //}
+
             var usuarioViewModelOutput = new UsuarioViewModelOutput()
             {
-                Codigo = 1,
-                Login = "heitor",
-                Email = "heitorfernandes@teste.com"
+                Codigo = usuario.Codigo,
+                Login = loginViewModelInput.Login,
+                Email = usuario.Email
             };
 
-            var secret = Encoding.ASCII.GetBytes("2bA5UCyDq7n_G1bQgJq2V0TzhBC5bgeZ9d8S-QHsVAsebcmHBJ1vghee_nvVwpZizYO8OverZwqRuoSjBF8l9Izw9G0KJyklHKDeipldpaCZQ3l5IYzDwaGYd3DDRQ2fFkzHSE3lnqUzmkVxCDFgYqXE0yTmeIcvJnH6xb1n3srZqgeh87qhFSsw_JYLCWq12FMcYoU9vSlF884ESnjLx38qBAbnLzZPCjstXtA3ZQ4jIf5I76N03ZqzqWP7eanbhHiVvCyFhrgh9AU1pACWkhDlllzRuhhblfA54S2-jb4BQnofxJwFJPmJWCo0ACOm6Ann7DPw_lIzpH22iBwzQ");
-            var symmetricSecurityKey = new SymmetricSecurityKey(secret);
-            var securityTokenDescriptor = new SecurityTokenDescriptor
-            {
-                Subject = new ClaimsIdentity(new Claim[]
-                {
-                    new Claim(ClaimTypes.NameIdentifier, usuarioViewModelOutput.Codigo.ToString()),
-                    new Claim(ClaimTypes.Name, usuarioViewModelOutput.Login.ToString()),
-                    new Claim(ClaimTypes.Email, usuarioViewModelOutput.Email.ToString())
-                }),
-                Expires = DateTime.UtcNow.AddDays(1),
-                SigningCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256Signature)
-            };
-            var jwtSecurityTokenHandler = new JwtSecurityTokenHandler();
-            var tokenGenerated = jwtSecurityTokenHandler.CreateToken(securityTokenDescriptor);
-            var token = jwtSecurityTokenHandler.WriteToken(tokenGenerated);
+            var token = _authenticateService.GerarToken(usuarioViewModelOutput);
 
 
             return Ok(new
@@ -61,13 +73,34 @@ namespace Web.Api.Controllers
             });
         }
 
+        [SwaggerResponse(statusCode: 200, description: "Sucesso ao autenticar", Type = typeof(LoginViewModelInput))]
+        [SwaggerResponse(statusCode: 400, description: "Campos obrigatórios", Type = typeof(ValidaCampoViewOutPut))]
+        [SwaggerResponse(statusCode: 500, description: "Erro interno", Type = typeof(ErroGenericoViewModel))]
+
         [HttpPost]
         [Route("registrar")]
         [ValidacaoModelStateCustomizado]
-        public IActionResult Registrar(RegistroViewModelInput registroViewModelInput)
+        public IActionResult Registrar(RegistroViewModelInput loginViewModelInput)
         {
 
-            return Created("", registroViewModelInput);
+
+            //var migracoesPendentes = contexto.Database.GetPendingMigrations();
+
+            //if (migracoesPendentes.Count() > 0)
+            //{
+            //    contexto.Database.Migrate();
+            //}
+
+            var usuario = new Usuario();
+            usuario.Login = loginViewModelInput.Login;
+            usuario.Senha = loginViewModelInput.Senha;
+            usuario.Email = loginViewModelInput.Email;
+
+            _usuarioRepository.Adicionar(usuario);
+            _usuarioRepository.Commit();
+
+
+            return Created("", loginViewModelInput);
         }
 
         
